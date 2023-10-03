@@ -10,6 +10,7 @@ export enum ModalView {
   NotExist = 'NotExist',
   Rejected = 'Rejected',
   QRCode = 'QRCode',
+  Stytch = 'Stytch',
 }
 
 export interface WalletModalProps {

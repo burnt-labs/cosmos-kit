@@ -6,3 +6,4 @@ export * from './NotExist';
 export * from './QRCode';
 export * from './Rejected';
 export * from './WalletList';
+export * from './StytchView';

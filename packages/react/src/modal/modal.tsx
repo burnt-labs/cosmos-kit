@@ -44,10 +44,20 @@ export function WalletModal({
 
   const current = walletRepo?.current;
 
+  const [stytchState, setStytchState] = useState<State>(
+    // @ts-ignore
+    current?.client.stytchState
+  ); // state of stytch
+  const [stytchMessage, setStytchMessage] = useState<string>(''); //   message of stytch error
+
   (current?.client as any)?.setActions?.({
     qrUrl: {
       state: setQRState,
       message: setQRMsg,
+    },
+    stytchState: {
+      state: setStytchState,
+      message: setStytchMessage,
     },
   });
 
@@ -58,8 +68,10 @@ export function WalletModal({
     if (isOpen) {
       switch (walletStatus) {
         case WalletStatus.Connecting:
-          if (qrState === State.Init) {
+          if (qrState === State.Init && stytchState === State.Init) {
             setCurrentView(ModalView.Connecting);
+          } else if (stytchState !== State.Init) {
+            setCurrentView(ModalView.Stytch);
           } else {
             setCurrentView(ModalView.QRCode);
           }
@@ -88,7 +100,15 @@ export function WalletModal({
           break;
       }
     }
-  }, [isOpen, qrState, walletStatus, qrMsg, message]);
+  }, [
+    isOpen,
+    qrState,
+    walletStatus,
+    qrMsg,
+    message,
+    stytchState,
+    stytchMessage,
+  ]);
 
   const onCloseModal = useCallback(() => {
     setOpen(false);
