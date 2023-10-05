@@ -68,7 +68,8 @@ export class BurntClient implements WalletClient {
   actions?: WalletClientActions;
   stytchState: Mutable<string>;
 
-  jwt: string;
+  stytchEmail: string;
+  stytchJwt: string;
 
   emitter?: EventEmitter;
   logger?: Logger;
@@ -101,11 +102,11 @@ export class BurntClient implements WalletClient {
   }
 
   get getJwt() {
-    return this.jwt;
+    return this.stytchJwt;
   }
 
   get displayStytchLogin() {
-    if (this.jwt) {
+    if (this.stytchJwt) {
       return false;
     } else {
       return true;
@@ -117,15 +118,27 @@ export class BurntClient implements WalletClient {
       this.setStytchState(State.Init);
     }
 
+    // TODO: If this.jwt then connect, else just return so we don't get infinite connecting screen
+
     if (this.displayStytchLogin) {
       this.setStytchState(State.Pending);
     }
-    await delay(5000);
+    // TODO: Look into this delay and other ways. the waitForEmailToContinue is sloppy mechanic but only way I can think of as of rn to achieve this wait for user input functionality.
+    // Issue is that the input id it searches for doesn't render in time and so it throws an error. The delay helps mitigate that.
+    await delay(500);
     const email = await waitForEmailToContinue();
+    this.stytchEmail = email as string;
     await this.sendEmail(email as string);
     const otp = await waitForOtpToContinue();
     await this.verifyOTP(otp as string);
     this.setStytchState(State.Init);
+  }
+
+  async disconnect() {
+    this.setStytchState(State.Init);
+    this.stytchEmail = undefined;
+    this.stytchJwt = undefined;
+    this.method_id = undefined;
   }
 
   async sendEmail(email: string) {
@@ -145,7 +158,7 @@ export class BurntClient implements WalletClient {
       const foo = await this.stytch.otps.authenticate(otp, this.method_id, {
         session_duration_minutes: 60,
       });
-      this.jwt = foo.session_jwt;
+      this.stytchJwt = foo.session_jwt;
 
       this.setStytchState(State.Init);
       console.log(foo);
